@@ -233,8 +233,19 @@ RUN cp "${NDK_HOME}/sources/android/cpufeatures/cpu-features.h" \
 #   --without-npm           Skip npm (not needed for embedded use)
 #   --without-inspector     Skip Chrome DevTools protocol (saves ~2MB)
 #   --openssl-no-asm        NDK clang lacks some openssl ASM optimizations
+#
+# v8_enable_sandbox=false — CRITICAL for cross-compilation to Android.
+#   In Node 24, the V8 memory sandbox is enabled by default on 64-bit platforms.
+#   When enabled, mksnapshot (the HOST snapshot generator) requires trap handler
+#   symbols (v8_internal_simulator_ProbeMemory, trap_handler::RegisterDefaultTrap
+#   Handler, trap_handler::TryHandleSignal) to be linked in. When cross-compiling
+#   for ARM64, the host mksnapshot includes the ARM64 simulator which calls into
+#   the trap handler — but the GYP-generated mksnapshot.host.mk does not link
+#   libv8_trap_handler.a, causing undefined symbol linker errors.
+#   Disabling the sandbox removes this dependency entirely. The V8 sandbox is
+#   not supported on Android anyway.
 RUN cd /build/node-src && \
-    export GYP_DEFINES="target_arch=arm64 host_arch=x64 host_os=linux android_ndk_path=${NDK_HOME}" && \
+    export GYP_DEFINES="target_arch=arm64 host_arch=x64 host_os=linux android_ndk_path=${NDK_HOME} v8_enable_sandbox=false" && \
     \
     PAGE_LDFLAGS="-Wl,-z,max-page-size=${PAGE_SIZE} -Wl,-z,common-page-size=${PAGE_SIZE}" && \
     export LDFLAGS="${PAGE_LDFLAGS}" && \
@@ -285,7 +296,7 @@ RUN cd /build/node-src && \
 # pipefail is set globally via the SHELL directive at the top of this file,
 # so make failures are not swallowed by `tee`'s exit code.
 RUN cd /build/node-src && \
-    export GYP_DEFINES="target_arch=arm64 host_arch=x64 host_os=linux android_ndk_path=${NDK_HOME}" && \
+    export GYP_DEFINES="target_arch=arm64 host_arch=x64 host_os=linux android_ndk_path=${NDK_HOME} v8_enable_sandbox=false" && \
     echo "Building Node.js (this will take a while)..." && \
     make -j${JOBS} 2>&1 | tee /build/build.log && \
     echo "Build complete!" && \
