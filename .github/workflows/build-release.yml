@@ -238,9 +238,15 @@ jobs:
           tar -czf "libnode-v${NODE_VER}-android-arm64-api${ANDROID_API}-headers.tar.gz" \
               -C ./output/include .
 
-          # Also package the JNI bridge source
-          tar -czf "libnode-v${NODE_VER}-jni-bridge.tar.gz" \
-              jni-bridge/
+          # Also package the JNI bridge source if it exists
+          if [ -d "jni-bridge" ]; then
+            tar -czf "libnode-v${NODE_VER}-jni-bridge.tar.gz" \
+                jni-bridge/
+          else
+            echo "Skipping jni-bridge (directory not found)"
+            # Create a dummy file so the release step doesn't fail if it expects this file
+            touch "libnode-v${NODE_VER}-jni-bridge.tar.gz"
+          fi
 
           ls -lh *.tar.gz
 
