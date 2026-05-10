@@ -101,41 +101,21 @@ RUN echo "Downloading Node.js v${NODE_VERSION}..." && \
     && echo "Node.js source ready"
 
 # ── Fetch Termux patches ───────────────────────────────────────────────────
-# We try the "nodejs-lts" package first (LTS-specific patches), then fall back
-# to the "nodejs" package. Both may have patches applicable to newer versions.
-RUN echo "Fetching Termux patches from ${TERMUX_REF}..." && \
+# We clone the Termux packages repo shallowly to get the latest patches.
+# This is much more reliable than scraping HTML or using the GitHub API.
+RUN echo "Fetching Termux patches from branch/tag ${TERMUX_REF}..." && \
+    git clone --depth 1 --branch "${TERMUX_REF}" https://github.com/termux/termux-packages.git /tmp/termux-packages && \
     mkdir -p /build/termux-patches && \
     \
-    # Determine which major version we have
-    NODE_MAJOR=$(echo ${NODE_VERSION} | cut -d. -f1) && \
-    echo "Node.js major version: ${NODE_MAJOR}" && \
-    \
-    # Try nodejs-lts first
-    PATCH_BASE="https://raw.githubusercontent.com/termux/termux-packages/${TERMUX_REF}/packages" && \
-    for PKG in nodejs-lts nodejs; do \
-        echo "Trying ${PKG}..." && \
-        curl -sfL "${PATCH_BASE}/${PKG}/" \
-            | grep -oP '(?<=href=")[^"]+\.patch' \
-            | while read PFILE; do \
-                echo "  Downloading ${PKG}/${PFILE}" && \
-                curl -sfL "${PATCH_BASE}/${PKG}/${PFILE}" \
-                     -o "/build/termux-patches/${PKG}-${PFILE}" || true; \
-              done ; \
+    # Copy patches for nodejs and nodejs-lts
+    for PKG in nodejs nodejs-lts; do \
+        if [ -d "/tmp/termux-packages/packages/${PKG}" ]; then \
+            echo "Copying patches for ${PKG}..." && \
+            cp /tmp/termux-packages/packages/${PKG}/*.patch /build/termux-patches/ 2>/dev/null || true; \
+        fi; \
     done && \
-    \
-    # Fallback: use the GitHub API to list patch files
-    for PKG in nodejs-lts nodejs; do \
-        API_URL="https://api.github.com/repos/termux/termux-packages/contents/packages/${PKG}?ref=${TERMUX_REF}"; \
-        curl -sfL "${API_URL}" 2>/dev/null \
-            | python3 -c "import sys, json; items = json.load(sys.stdin); patches = [i['download_url'] for i in items if i['name'].endswith('.patch')]; print('\n'.join(patches))" \
-            | while read URL; do \
-                FNAME=$(basename "$URL"); \
-                echo "  [API] Downloading ${PKG}/${FNAME}"; \
-                curl -sfL "$URL" -o "/build/termux-patches/${PKG}-${FNAME}" || true; \
-              done ; \
-    done && \
-    \
-    echo "Patches downloaded:" && ls /build/termux-patches/ || echo "(none)"
+    rm -rf /tmp/termux-packages && \
+    echo "Patches collected:" && ls /build/termux-patches/ || echo "(none)"
 
 # ── Apply patches ──────────────────────────────────────────────────────────
 # We apply patches in order, skipping ones that don't apply cleanly
