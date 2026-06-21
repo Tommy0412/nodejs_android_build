@@ -175,7 +175,7 @@ RUN cp "${NDK_HOME}/sources/android/cpufeatures/cpu-features.h" \
 #                           what Termux uses for their Android builds.
 RUN cd /build/node-src && \
     export GYP_DEFINES="target_arch=arm64 host_arch=x64 host_os=linux android_ndk_path=${NDK_HOME}" && \
-    PAGE_LDFLAGS="-Wl,-z,max-page-size=${PAGE_SIZE} -Wl,-z,common-page-size=${PAGE_SIZE}" && \
+    PAGE_LDFLAGS="-Wl,-z,max-page-size=${PAGE_SIZE} -Wl,-z,common-page-size=${PAGE_SIZE},-lcpufeatures" && \
     export LDFLAGS="${PAGE_LDFLAGS}" && \
     ./configure \
         --dest-os=android \
