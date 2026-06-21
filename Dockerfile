@@ -11,7 +11,7 @@
 #   docker build \
 #     --build-arg NODE_VERSION=24.13.0 \
 #     --build-arg NDK_VERSION=r27c \
-#     --build-arg ANDROID_API=24 \
+#     --build-arg ANDROID_API=28 \
 #     --build-arg JOBS=8 \
 #     -t node-android-builder .
 #
@@ -30,7 +30,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # ── Build arguments ────────────────────────────────────────────────────────
 ARG NODE_VERSION=24.13.0
 ARG NDK_VERSION=r27c
-ARG ANDROID_API=24
+ARG ANDROID_API=28
 ARG JOBS=4
 
 # Termux repo ref (branch/tag) to pull patches from.
