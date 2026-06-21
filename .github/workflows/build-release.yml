@@ -15,7 +15,7 @@ on:
       android_api:
         description: 'Android min API level'
         required: true
-        default: '24'
+        default: '28'
       termux_ref:
         description: 'Termux packages branch/tag/SHA for patches'
         required: true
@@ -34,7 +34,7 @@ env:
   # Defaults used when triggered by tag push (not workflow_dispatch)
   DEFAULT_NODE_VERSION: '24.13.0'
   DEFAULT_NDK_VERSION: 'r27c'
-  DEFAULT_ANDROID_API: '24'
+  DEFAULT_ANDROID_API: '28'
   DEFAULT_TERMUX_REF: 'master'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/node-android-arm64-builder
