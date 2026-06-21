@@ -7,7 +7,7 @@ set -euo pipefail
 # ── Configuration ────────────────────────────────────────────────────────────
 NODE_VERSION="${NODE_VERSION:-24.13.0}"   # Node.js version to build
 NDK_VERSION="${NDK_VERSION:-r27c}"        # Android NDK version
-ANDROID_API="${ANDROID_API:-24}"         # Min SDK (24 = Android 7.0)
+ANDROID_API="${ANDROID_API:-28}"         # Min SDK
 JOBS="${JOBS:-$(nproc)}"                 # Parallel build jobs
 OUTPUT_DIR="${OUTPUT_DIR:-./output}"     # Where to put artifacts
 IMAGE_NAME="node-android-arm64-builder"
